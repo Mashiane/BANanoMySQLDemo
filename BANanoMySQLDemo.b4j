@@ -1,0 +1,109 @@
+﻿AppType=JavaFX
+Build1=Default,b4j.example
+Group=Default Group
+Library1=jcore
+Library2=jfx
+Library3=banano
+Library4=uoenow
+Library5=bananopostprocessor
+Module1=BANanoMySQL
+Module2=pgSignIn
+Module3=pgindex
+NumberOfFiles=0
+NumberOfLibraries=5
+NumberOfModules=3
+Version=7.51
+@EndOfDesignText@
+#Region Project Attributes 
+	#MainFormWidth: 600
+	#MainFormHeight: 600 
+#End Region
+
+Sub Process_Globals
+	Public App As UOENowApp
+	Public BANano As BANano
+	Public AppName As String = "BANanoMySQLDemo"
+	Private fx As JFX
+	Private BP As BANanoPostProcessor
+	Private Publish As String
+End Sub
+
+Sub AppStart (Form1 As Form, Args() As String)
+	'initialize banano for first use
+	Publish = "C:\xampp\htdocs"
+	Dim version As String = DateTime.now
+	BANano.Initialize("BANano", AppName,version)
+	BANano.HTML_NAME = "index.html"
+	BANano.Header.Title = AppName
+	BANano.PHP_NAME = "bananomysqldemo.php"
+	'for release use actual path of website and not localhost
+	BANano.PHPHost = "http://localhost/" & AppName & "/"
+	BANano.PHPAddHeader("Access-Control-Allow-Origin: *")
+	BANano.JAVASCRIPT_NAME = $"app${version}.js"$
+	'initialize the app
+	App.Initialize(AppName,AppName,AppName,True,False)
+	App.RequireWizardNot
+	App.RequireValidateNot
+	App.RequireDataTableNot
+	App.RequireFilePickerNot
+	App.RequireTagsInputNot
+	App.RequireFullCalendarNot
+	App.RequireVectorMapNot
+	App.RequireSweetModal
+	App.RequirePreLoader
+	App.RequireEasyHint
+	App.AddStyles
+	App.AddScripts
+	BANano.Header.AddCSSFile("https://fonts.googleapis.com/css?family=Montserrat:400,700,200|Open+Sans+Condensed:700")
+	'BANano.TranspilerOptions.MergeAllCSSFiles = True
+	'BANano.TranspilerOptions.MergeAllJavascriptFiles = True
+	'BANano.TranspilerOptions.ShowWarningDeadCode = True
+	'BANano.TranspilerOptions.RemoveDeadCode = True
+	BANano.TranspilerOptions.UseServiceWorker = False
+	BANano.Build(Publish)
+	'post processor
+	BP.Initialize
+	BP.PublishPath = Publish
+	BP.ShortName = AppName
+	BP.AssetsPath = BANano.ASSETS_FOLDER
+	BP.ScriptsPath = BANano.SCRIPTS_FOLDER
+	BP.StylesPath = BANano.STYLES_FOLDER
+	BP.ScriptFile = BANano.JAVASCRIPT_NAME
+	'BP.UsesAlaSQL = True
+	'BP.CompressJS = True
+	'BP.CompressCSS = True
+	'BP.MergeCSS = True
+	'BP.CleanProject(App.DoNotDelete,App.Resources)
+	BP.UnzipFonts
+	BP.Open(True)
+	ExitApplication
+End Sub
+
+'Return true to allow the default exceptions handler to handle the uncaught exception.
+Sub Application_Error (Error As Exception, StackTrace As String) As Boolean
+	Return True
+End Sub
+
+'SQL Commands to run to create the strcuture
+
+'***DATABASE
+'CREATE DATABASE IF NOT EXISTS `bananomysqldemo` DEFAULT CHARACTER SET utf8 COLLATE utf8_unicode_ci"
+
+'****USERS
+'CREATE TABLE IF NOT EXISTS `users` (`id` INT NOT NULL PRIMARY KEY AUTO_INCREMENT, 
+'`ssn` VARCHAR(20), `firstname` VARCHAR(50), `lastname` VARCHAR(50), 
+'`email` VARCHAR(50), `telephone` VARCHAR(20), `password` VARCHAR(20), 
+'`applyfor` VARCHAR(20))
+
+'*** CONNECTION SETTINGS
+'ensure you update your connection settings in the inline php script in the BANanoMySQL class
+'also ensure that your BANano.PHPHost points to the right location when published on the www, for localhost its fine as it is
+
+Sub BANano_Ready
+	'init an UOENow App, you can use your own lib for the UX
+	App.Initialize(AppName,AppName,AppName,False,False)
+	App.EmailFrom = "website@amitekbc.co.za"
+	App.EmailCC = "mbanga.anele@gmail.com"
+	'show registration form
+	pgindex.Init(App)
+End Sub
